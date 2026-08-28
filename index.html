@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0B4D33">
+<link rel="manifest" href="manifest.json">
 <title>Daily Reflection</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Lora:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&display=swap');
@@ -21,7 +23,39 @@
     overflow-x: hidden;
   }
 
-  .wrap { width: 100%; max-width: 420px; position: relative; z-index: 1; }
+  .wrap {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 1;
+    perspective: 1200px;
+    transform-style: preserve-3d;
+    animation: ambientSway 9s ease-in-out infinite;
+  }
+  @keyframes ambientSway {
+    0%, 100% { transform: rotateX(3deg) rotateY(-4deg); }
+    50% { transform: rotateX(-2deg) rotateY(4deg); }
+  }
+
+  /* Stacked-card depth: two faint offset "sheets" behind the main card,
+     like a stack of pages, so the 3D depth is visible at rest. */
+  .wrap::before,
+  .wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    background: linear-gradient(180deg, #1B7A4D 0%, #0B4D33 100%);
+    z-index: -1;
+    transform-style: preserve-3d;
+    pointer-events: none;
+  }
+  .wrap::before { transform: translateZ(-22px) translateY(10px) translateX(-6px) rotate(-2.2deg); opacity: 0.5; }
+  .wrap::after  { transform: translateZ(-44px) translateY(18px) translateX(10px) rotate(2.6deg); opacity: 0.28; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wrap { animation: none !important; }
+  }
 
   .hero {
     position: relative;
@@ -98,7 +132,22 @@
     border-top: none;
     border-radius: 0 0 22px 22px;
     padding: 26px 22px 30px;
-    box-shadow: 0 12px 30px rgba(52, 199, 123, 0.18);
+    box-shadow:
+      0 12px 30px rgba(52, 199, 123, 0.18),
+      0 30px 60px rgba(8, 48, 31, 0.10);
+    transform-style: preserve-3d;
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+    will-change: transform;
+  }
+
+  .hero {
+    transform-style: preserve-3d;
+    transition: transform 0.15s ease-out;
+    will-change: transform;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card, .hero { transition: none !important; }
   }
 
   .prompt-row {
@@ -155,15 +204,20 @@
     font-weight: 700;
     font-family: 'Inter', sans-serif;
     cursor: pointer;
-    transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease;
+    box-shadow: 0 3px 0 rgba(16, 185, 129, 0.25), 0 4px 8px rgba(16, 185, 129, 0.15);
+    transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.15s ease;
   }
-  .mood-btn:active { transform: scale(0.97); }
+  .mood-btn:active {
+    transform: scale(0.97) translateY(2px);
+    box-shadow: 0 0 0 rgba(16, 185, 129, 0.25), 0 1px 2px rgba(16, 185, 129, 0.15);
+  }
   .mood-btn.active {
     background: linear-gradient(135deg, #34D399, #10B981);
     background-size: 200% 200%;
     animation: shimmer 3.5s ease infinite;
     color: #063D22;
     border-color: #10B981;
+    box-shadow: inset 0 2px 5px rgba(6, 61, 34, 0.35), 0 2px 6px rgba(16, 185, 129, 0.3);
   }
   @keyframes shimmer {
     0% { background-position: 0% 50%; }
@@ -200,7 +254,7 @@
     font-weight: 700;
     margin-bottom: 10px;
   }
-  .glyph { width: 18px; height: 18px; flex-shrink: 0; color: #10B981; }
+  .glyph { width: 18px; height: 18px; flex-shrink: 0; color: #10B981; filter: drop-shadow(0 2px 2px rgba(11,107,58,0.35)); }
 
   .arabic {
     font-family: 'Amiri', serif;
@@ -236,14 +290,28 @@
   }
   .footer b { color: #0B6B3A; font-weight: 700; }
 
+  .tilt-enable-btn {
+    display: block;
+    margin: 16px auto 0;
+    background: #EAFBF1;
+    border: 1px solid #BFEED2;
+    color: #0B6B3A;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 12.5px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+  }
+
   @media (prefers-reduced-motion: no-preference) {
     .results.show .section { animation: rise 0.5s ease both; }
     .results.show .section:nth-child(2) { animation-delay: 0.1s; }
     .results.show .section:nth-child(3) { animation-delay: 0.2s; }
   }
   @keyframes rise {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(10px) translateZ(-30px) rotateX(8deg); }
+    to { opacity: 1; transform: translateY(0) translateZ(0) rotateX(0deg); }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -475,7 +543,7 @@
 </div>
 
 <script>
-const verses = [
+const fallbackVerses = [
   { arabic: "لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا", text: "Allah does not burden any soul beyond what it can bear.", ref: "Qur'an 2:286", mood: "peace" },
   { arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", text: "With hardship comes ease.", ref: "Qur'an 94:5", mood: "emotional" },
   { arabic: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ", text: "Truly, it is in the remembrance of Allah that hearts find rest.", ref: "Qur'an 13:28", mood: "peace" },
@@ -496,155 +564,7 @@ const verses = [
   { arabic: "ادْفَعْ بِالَّتِي هِيَ أَحْسَنُ", text: "Repel evil with what is better.", ref: "Qur'an 41:34", mood: "peace" }
 ];
 
-const hadiths = [
-  { text: "Actions are judged by their intentions, and every person will be rewarded according to what they intended.", ref: "Sahih al-Bukhari", mood: "peace" },
-  { text: "None of you truly believes until he wishes for his brother what he wishes for himself.", ref: "Sahih al-Bukhari and Muslim", mood: "happy" },
-  { text: "The best among you are those who are best to their families.", ref: "Jami' at-Tirmidhi", mood: "happy" },
-  { text: "Smiling at your brother is an act of charity.", ref: "Jami' at-Tirmidhi", mood: "happy" },
-  { text: "Allah is gentle and loves gentleness in all matters.", ref: "Sahih al-Bukhari and Muslim", mood: "peace" },
-  { text: "The strong person is not the one who overpowers others, but the one who controls himself when angry.", ref: "Sahih al-Bukhari", mood: "emotional" },
-  { text: "Be mindful of Allah and He will protect you. Be mindful of Allah and you will find Him with you.", ref: "Jami' at-Tirmidhi", mood: "peace" },
-  { text: "Whoever believes in Allah and the Last Day should speak good or remain silent.", ref: "Sahih al-Bukhari and Muslim", mood: "peace" },
-  { text: "Cleanliness is half of faith.", ref: "Sahih Muslim", mood: "happy" },
-  { text: "The most beloved deeds to Allah are the ones done regularly, even if small.", ref: "Sahih al-Bukhari and Muslim", mood: "peace" },
-  { text: "Seeking knowledge is an obligation upon every believer.", ref: "Sunan Ibn Majah", mood: "happy" },
-  { text: "None of you truly believes until he wishes for his neighbour what he wishes for himself.", ref: "Sahih al-Bukhari", mood: "happy" },
-  { text: "Modesty brings nothing except good.", ref: "Sahih al-Bukhari and Muslim", mood: "peace" },
-  { text: "Take advantage of five before five: your youth before your old age, your health before your sickness, your wealth before your poverty, your free time before you are occupied, and your life before your death.", ref: "Al-Hakim, and narrated by al-Bayhaqi", mood: "emotional" },
-  { text: "A man asked the Prophet who most deserved his good companionship. He said: your mother — three times — then your father.", ref: "Sahih al-Bukhari and Muslim", mood: "emotional" },
-  { text: "Whoever relieves a believer's hardship in this life, Allah will relieve one of his hardships on the Day of Judgment.", ref: "Sahih Muslim", mood: "emotional" },
-  { text: "Feed the hungry, visit the sick, and free the captive.", ref: "Sahih al-Bukhari", mood: "emotional" },
-  { text: "A good word is charity.", ref: "Sahih al-Bukhari and Muslim", mood: "happy" },
-  { text: "Whoever guides someone to goodness has a reward like the one who does it.", ref: "Sahih Muslim", mood: "happy" },
-  { text: "Allah does not look at your bodies or your wealth, but He looks at your hearts and your deeds.", ref: "Sahih Muslim", mood: "peace" }
-];
-
-const quotes = [
-  { text: "Patience is to faith what the head is to the body — without it, there is no faith at all.", ref: "Ali ibn Abi Talib", mood: "emotional" },
-  { text: "The heart that is truly attached to Allah finds a rest that nothing in this world can give it.", ref: "Ibn al-Qayyim", mood: "peace" },
-  { text: "Knowledge without action is like a tree that bears no fruit.", ref: "Imam al-Ghazali", mood: "happy" },
-  { text: "The wound is the place where the light enters you.", ref: "Jalal ad-Din Rumi", mood: "emotional" },
-  { text: "Patience is bitter to taste, but what grows from it is sweeter than honey.", ref: "Imam ash-Shafi'i", mood: "emotional" },
-  { text: "Do good quietly, and let the deed speak for you instead of your tongue.", ref: "Abu Bakr as-Siddiq", mood: "happy" },
-  { text: "This world is three days: yesterday, which has left you and will not return; today, which is yours, so use it well; and tomorrow, which you may never see.", ref: "Hasan al-Basri", mood: "peace" },
-  { text: "Do not delay repentance out of false hope, and do not despair of mercy out of grief.", ref: "Ibn Ata'illah al-Sakandari", mood: "emotional" },
-  { text: "A moment of patience in a moment of anger saves a thousand moments of regret.", ref: "Widely attributed Islamic wisdom", mood: "emotional" },
-  { text: "A grateful heart is a heart at peace, whatever it holds.", ref: "Malik ibn Dinar", mood: "happy" },
-  { text: "A person is known by the company he keeps — so choose your companions with care.", ref: "Abdullah ibn Mas'ud", mood: "happy" },
-  { text: "Leaving a sin for the sake of Allah is dearer to Him than many long nights of extra prayer.", ref: "Al-Fudayl ibn Iyad", mood: "peace" },
-  { text: "Sincerity is the hardest thing to hold onto, because the heart keeps turning.", ref: "Sufyan al-Thawri", mood: "peace" },
-  { text: "Do not lose yourself trying to please everyone; you were created to please your Lord.", ref: "Ibn al-Jawzi", mood: "peace" },
-  { text: "The believer's affair is admirable — every matter of his is good, and this applies to no one but him.", ref: "Adapted from a saying preserved by Imam Muslim", mood: "happy" }
-];
-
-let currentMood = null;
-const bags = {};
-
-function pick(arr, mood, key) {
-  const filtered = mood ? arr.filter(function (item) { return item.mood === mood; }) : arr;
-  const pool = filtered.length ? filtered : arr;
-  const bagKey = key + '_' + (mood || 'all');
-
-  if (!bags[bagKey] || bags[bagKey].length === 0) {
-    const indices = pool.map(function (_, i) { return i; });
-    for (let i = indices.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const t = indices[i]; indices[i] = indices[j]; indices[j] = t;
-    }
-    bags[bagKey] = indices;
-  }
-
-  const idx = bags[bagKey].pop();
-  return pool[idx];
-}
-
-function reveal(mood) {
-  const v = pick(verses, mood, 'verses');
-  const h = pick(hadiths, mood, 'hadiths');
-  const q = pick(quotes, mood, 'quotes');
-
-  document.getElementById('arabicText').textContent = v.arabic;
-  document.getElementById('verseText').textContent = v.text;
-  document.getElementById('verseRef').textContent = v.ref;
-
-  document.getElementById('hadithText').textContent = h.text;
-  document.getElementById('hadithRef').textContent = h.ref;
-
-  document.getElementById('quoteText').textContent = q.text;
-  document.getElementById('quoteRef').textContent = q.ref;
-
-  document.getElementById('results').classList.remove('show');
-  void document.getElementById('results').offsetWidth;
-  document.getElementById('results').classList.add('show');
-
-  document.getElementById('hintLine').textContent = mood
-    ? "Tap a mood again, or use refresh, for a fresh draw."
-    : "Showing a random pick. Choose a mood above to narrow it down.";
-}
-
-function updateClock() {
-  const now = new Date();
-  const h = now.getHours();
-  let period;
-  if (h < 5) period = "the still hours of night";
-  else if (h < 7) period = "the hour of Fajr";
-  else if (h < 12) period = "the morning";
-  else if (h < 15) period = "midday, around Dhuhr";
-  else if (h < 18) period = "the afternoon, around Asr";
-  else if (h < 20) period = "dusk, around Maghrib";
-  else period = "the evening, around Isha";
-
-  const timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-  const dateStr = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
-  document.getElementById('clockLine').textContent = dateStr + " · " + timeStr;
-
-  const greetings = {
-    "the still hours of night": "A quiet hour for remembrance",
-    "the hour of Fajr": "Peace on your morning",
-    "the morning": "A blessed morning to you",
-    "midday, around Dhuhr": "A steady midday to you",
-    "the afternoon, around Asr": "A mindful afternoon to you",
-    "dusk, around Maghrib": "A peaceful evening to you",
-    "the evening, around Isha": "A calm night ahead"
-  };
-  document.getElementById('greetingLine').textContent = greetings[period];
-}
-
-const moodButtons = document.querySelectorAll('.mood-btn');
-moodButtons.forEach(function (btn) {
-  btn.addEventListener('click', function () {
-    moodButtons.forEach(function (b) { b.classList.remove('active'); });
-    this.classList.add('active');
-    currentMood = this.getAttribute('data-mood');
-    reveal(currentMood);
-  });
-});
-
-document.getElementById('refreshBtn').addEventListener('click', function () {
-  this.classList.remove('spin');
-  void this.offsetWidth;
-  this.classList.add('spin');
-  reveal(currentMood);
-});
-
-updateClock();
-setInterval(updateClock, 30000);
-
-const overlay = document.getElementById('welcomeOverlay');
-function closePopup() {
-  overlay.classList.remove('show');
-  try { localStorage.setItem('dr_seen_welcome', '1'); } catch (e) {}
-}
-try {
-  if (!localStorage.getItem('dr_seen_welcome')) {
-    setTimeout(function () { overlay.classList.add('show'); }, 900);
-  }
-} catch (e) {}
-document.getElementById('popupClose').addEventListener('click', closePopup);
-document.getElementById('popupMaybe').addEventListener('click', closePopup);
-document.getElementById('popupInstagram').addEventListener('click', closePopup);
-document.getElementById('popupTiktok').addEventListener('click', closePopup);
-overlay.addEventListener('click', function (e) { if (e.target === overlay) closePopup(); });
-</script>
-</body>
-</html>
+// ---- Full Qur'an (6,236 verses) ----
+// Loaded once from a free public CDN (jsDelivr, mirroring the quran-json
+// project) and cached two ways:
+//   
