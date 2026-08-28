@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0B4D33">
+<link rel="manifest" href="manifest.json">
+<title>Daily Reflection</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Lora:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: linear-gradient(180deg, #F4FFF8 0%, #E3F9EC 100%);
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    color: #14321F;
+    padding: 28px 16px 40px;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 1;
+    perspective: 1200px;
+    transform-style: preserve-3d;
+    animation: ambientSway 9s ease-in-out infinite;
+  }
+  @keyframes ambientSway {
+    0%, 100% { transform: rotateX(3deg) rotateY(-4deg); }
+    50% { transform: rotateX(-2deg) rotateY(4deg); }
+  }
+
+  /* Stacked-card depth: two faint offset "sheets" behind the main card,
+     like a stack of pages, so the 3D depth is visible at rest. */
+  .wrap::before,
+  .wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    background: linear-gradient(180deg, #1B7A4D 0%, #0B4D33 100%);
+    z-index: -1;
+    transform-style: preserve-3d;
+    pointer-events: none;
+  }
+  .wrap::before { transform: translateZ(-22px) translateY(10px) translateX(-6px) rotate(-2.2deg); opacity: 0.5; }
+  .wrap::after  { transform: translateZ(-44px) translateY(18px) translateX(10px) rotate(2.6deg); opacity: 0.28; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wrap { animation: none !important; }
+  }
+
+  .hero {
+    position: relative;
+    background: linear-gradient(180deg, #1B7A4D 0%, #0B4D33 60%, #08301F 100%);
+    border-radius: 22px 22px 0 0;
+    padding: 22px 22px 0;
+    text-align: center;
+    overflow: hidden;
+    height: 210px;
+  }
+
+  .sky { position: absolute; inset: 0; z-index: 0; }
+  .sky span {
+    position: absolute;
+    background: #EAFBF1;
+    border-radius: 50%;
+    animation: twinkle 2.6s ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.25; transform: scale(0.8); }
+    50% { opacity: 0.9; transform: scale(1.1); }
+  }
+
+  .moon {
+    position: absolute;
+    top: 14px;
+    right: 26px;
+    width: 30px;
+    height: 30px;
+    z-index: 0;
+    animation: glow 3.2s ease-in-out infinite;
+  }
+  @keyframes glow {
+    0%, 100% { filter: drop-shadow(0 0 2px rgba(234,251,241,0.5)); }
+    50% { filter: drop-shadow(0 0 9px rgba(234,251,241,0.9)); }
+  }
+
+  .skyline { position: absolute; left: 0; right: 0; bottom: 0; z-index: 0; }
+  .skyline svg { width: 100%; display: block; }
+
+  .content { position: relative; z-index: 1; }
+
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #BFEED2;
+    font-weight: 700;
+  }
+
+  .clock {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 19px;
+    letter-spacing: 0.02em;
+    color: #063D22;
+    background: #EAFBF1;
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 999px;
+    margin-top: 10px;
+  }
+
+  .greeting {
+    font-family: 'Amiri', serif;
+    font-size: 25px;
+    margin-top: 8px;
+    color: #FFFFFF;
+  }
+
+  .card {
+    background: #FFFFFF;
+    border: 1px solid #C8F2DA;
+    border-top: none;
+    border-radius: 0 0 22px 22px;
+    padding: 26px 22px 30px;
+    box-shadow:
+      0 12px 30px rgba(52, 199, 123, 0.18),
+      0 30px 60px rgba(8, 48, 31, 0.10);
+    transform-style: preserve-3d;
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+    will-change: transform;
+  }
+
+  .hero {
+    transform-style: preserve-3d;
+    transition: transform 0.15s ease-out;
+    will-change: transform;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card, .hero { transition: none !important; }
+  }
+
+  .prompt-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    position: relative;
+  }
+
+  .prompt {
+    text-align: center;
+    font-size: 13.5px;
+    color: #0B6B3A;
+    font-weight: 600;
+  }
+
+  .refresh-btn {
+    position: absolute;
+    right: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #EAFBF1;
+    border: 1px solid #BFEED2;
+    color: #0B6B3A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.4s ease, background 0.2s ease;
+  }
+  .refresh-btn svg { width: 15px; height: 15px; }
+  .refresh-btn:active { transform: rotate(180deg) scale(0.95); }
+  .refresh-btn.spin svg { animation: spin 0.5s ease; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(180deg); } }
+
+  .mood-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .mood-btn {
+    flex: 1;
+    background: #EAFBF1;
+    border: 1px solid #BFEED2;
+    color: #0B6B3A;
+    border-radius: 12px;
+    padding: 14px 6px;
+    font-size: 13.5px;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 3px 0 rgba(16, 185, 129, 0.25), 0 4px 8px rgba(16, 185, 129, 0.15);
+    transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.15s ease;
+  }
+  .mood-btn:active {
+    transform: scale(0.97) translateY(2px);
+    box-shadow: 0 0 0 rgba(16, 185, 129, 0.25), 0 1px 2px rgba(16, 185, 129, 0.15);
+  }
+  .mood-btn.active {
+    background: linear-gradient(135deg, #34D399, #10B981);
+    background-size: 200% 200%;
+    animation: shimmer 3.5s ease infinite;
+    color: #063D22;
+    border-color: #10B981;
+    box-shadow: inset 0 2px 5px rgba(6, 61, 34, 0.35), 0 2px 6px rgba(16, 185, 129, 0.3);
+  }
+  @keyframes shimmer {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .hint {
+    text-align: center;
+    font-size: 12.5px;
+    color: #4C8A6A;
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+
+  .results { display: none; margin-top: 22px; }
+  .results.show { display: block; }
+
+  .section {
+    border-top: 1px solid #DFF7E9;
+    padding-top: 18px;
+    margin-top: 18px;
+  }
+  .section:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+
+  .label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #0E9F5D;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .glyph { width: 18px; height: 18px; flex-shrink: 0; color: #10B981; filter: drop-shadow(0 2px 2px rgba(11,107,58,0.35)); }
+
+  .arabic {
+    font-family: 'Amiri', serif;
+    font-size: 21px;
+    line-height: 1.9;
+    direction: rtl;
+    color: #14321F;
+    margin-bottom: 10px;
+  }
+
+  .body-text {
+    font-family: 'Lora', serif;
+    font-size: 16px;
+    line-height: 1.65;
+    color: #234832;
+  }
+
+  .ref { font-size: 12.5px; color: #4C8A6A; margin-top: 8px; font-family: 'Inter', sans-serif; }
+
+  .quote-text {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #234832;
+  }
+
+  .footer {
+    text-align: center;
+    font-size: 12.5px;
+    color: #4C8A6A;
+    margin-top: 20px;
+  }
+  .footer b { color: #0B6B3A; font-weight: 700; }
+
+  .tilt-enable-btn {
+    display: block;
+    margin: 16px auto 0;
+    background: #EAFBF1;
+    border: 1px solid #BFEED2;
+    color: #0B6B3A;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 12.5px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .results.show .section { animation: rise 0.5s ease both; }
+    .results.show .section:nth-child(2) { animation-delay: 0.1s; }
+    .results.show .section:nth-child(3) { animation-delay: 0.2s; }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(10px) translateZ(-30px) rotateX(8deg); }
+    to { opacity: 1; transform: translateY(0) translateZ(0) rotateX(0deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mood-btn.active, .sky span, .moon, .refresh-btn.spin svg { animation: none !important; }
+  }
+
+  .social-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .social-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #EAFBF1;
+    border: 1px solid #BFEED2;
+    color: #0B6B3A;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .social-btn svg { width: 15px; height: 15px; }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 48, 31, 0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 10;
+  }
+  .overlay.show { display: flex; }
+
+  .popup {
+    background: #FFFFFF;
+    border-radius: 18px;
+    border: 1px solid #C8F2DA;
+    max-width: 340px;
+    width: 100%;
+    padding: 24px 22px 22px;
+    text-align: center;
+    position: relative;
+  }
+  .popup-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #EAFBF1;
+    border: none;
+    color: #0B6B3A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+  }
+  .popup-close svg { width: 13px; height: 13px; }
+  .popup-title {
+    font-family: 'Amiri', serif;
+    font-size: 21px;
+    color: #14321F;
+    margin-top: 6px;
+  }
+  .popup-text {
+    font-family: 'Lora', serif;
+    font-size: 14.5px;
+    color: #234832;
+    line-height: 1.6;
+    margin-top: 10px;
+  }
+  .popup-socials {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .popup-social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #34D399, #10B981);
+    color: #063D22;
+    border-radius: 12px;
+    padding: 13px;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .popup-social-btn svg { width: 17px; height: 17px; }
+  .popup-maybe {
+    margin-top: 14px;
+    font-size: 12.5px;
+    color: #4C8A6A;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+
+<div class="overlay" id="welcomeOverlay">
+  <div class="popup">
+    <button class="popup-close" id="popupClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+    </button>
+    <div class="popup-title">Assalamu alaikum</div>
+    <div class="popup-text">If this page brings you some benefit, come say salam on my socials — that's where I share more.</div>
+    <div class="popup-socials">
+      <a class="popup-social-btn" href="https://www.instagram.com/mohammedidris.ig?igsi=OWtxODQwdWtiamY3" target="_blank" rel="noopener" id="popupInstagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>
+        Follow on Instagram
+      </a>
+      <a class="popup-social-btn" href="https://www.tiktok.com/@abuidrisxo?_r=1&_t=ZS-99F75k4zTPk" target="_blank" rel="noopener" id="popupTiktok">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 3v10.5a3.5 3.5 0 1 1-2.5-3.36V7.5"/><path d="M16 3a5 5 0 0 0 5 5"/></svg>
+        Follow on TikTok
+      </a>
+    </div>
+    <button class="popup-maybe" id="popupMaybe">Maybe later</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="sky" aria-hidden="true">
+      <span style="left:12%; top:16%; width:3px; height:3px; animation-delay:0s;"></span>
+      <span style="left:26%; top:30%; width:2px; height:2px; animation-delay:0.6s;"></span>
+      <span style="left:60%; top:14%; width:2px; height:2px; animation-delay:1.2s;"></span>
+      <span style="left:74%; top:36%; width:3px; height:3px; animation-delay:1.8s;"></span>
+      <span style="left:38%; top:10%; width:2px; height:2px; animation-delay:2.2s;"></span>
+      <span style="left:88%; top:12%; width:2px; height:2px; animation-delay:0.9s;"></span>
+    </div>
+    <svg class="moon" viewBox="0 0 40 40" aria-hidden="true">
+      <path d="M25 5 A15 15 0 1 0 25 35 A11.5 11.5 0 0 1 25 5 Z" fill="#EAFBF1"/>
+    </svg>
+    <div class="content">
+      <div class="eyebrow">Daily reflection</div>
+      <div class="clock" id="clockLine">-</div>
+      <div class="greeting" id="greetingLine">-</div>
+    </div>
+    <div class="skyline" aria-hidden="true">
+      <svg viewBox="0 0 420 130" preserveAspectRatio="none">
+        <rect x="0" y="95" width="420" height="35" fill="#08301F"/>
+        <rect x="52" y="70" width="10" height="60" fill="#08301F"/>
+        <circle cx="57" cy="66" r="6" fill="#08301F"/>
+        <path d="M57 46 L53 60 L61 60 Z" fill="#08301F"/>
+        <rect x="358" y="70" width="10" height="60" fill="#08301F"/>
+        <circle cx="363" cy="66" r="6" fill="#08301F"/>
+        <path d="M363 46 L359 60 L367 60 Z" fill="#08301F"/>
+        <path d="M130 130 L130 78 Q130 40 210 40 Q290 40 290 78 L290 130 Z" fill="#08301F"/>
+        <circle cx="210" cy="32" r="10" fill="#08301F"/>
+        <rect x="206" y="14" width="8" height="14" fill="#08301F"/>
+        <circle cx="210" cy="10" r="3" fill="#08301F"/>
+        <rect x="150" y="88" width="16" height="30" rx="8" fill="#0B4D33"/>
+        <rect x="254" y="88" width="16" height="30" rx="8" fill="#0B4D33"/>
+        <rect x="196" y="100" width="28" height="30" rx="14" fill="#0B4D33"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="prompt-row">
+      <div class="prompt">How are you feeling right now?</div>
+      <button class="refresh-btn" id="refreshBtn" aria-label="Draw again">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+      </button>
+    </div>
+    <div class="mood-row">
+      <button class="mood-btn" data-mood="happy">Happy</button>
+      <button class="mood-btn" data-mood="emotional">Emotional</button>
+      <button class="mood-btn" data-mood="peace">Peace</button>
+    </div>
+    <div class="hint" id="hintLine">Pick a mood — a matching verse, a teaching from the Sunnah, and a word of wisdom.</div>
+
+    <div class="results" id="results">
+      <div class="section">
+        <div class="label">
+          <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4Z"/><path d="M18 4v16"/></svg>
+          Qur'an
+        </div>
+        <div class="arabic" id="arabicText"></div>
+        <div class="body-text" id="verseText"></div>
+        <div class="ref" id="verseRef"></div>
+      </div>
+
+      <div class="section">
+        <div class="label">
+          <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>
+          Sunnah
+        </div>
+        <div class="body-text" id="hadithText"></div>
+        <div class="ref" id="hadithRef"></div>
+      </div>
+
+      <div class="section">
+        <div class="label">
+          <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 8c0-3 2-5 5-5v5H7Z"/><path d="M7 8c0 3 2 5 5 5"/><path d="M17 8c0-3-2-5-5-5"/></svg>
+          Words of wisdom
+        </div>
+        <div class="quote-text" id="quoteText"></div>
+        <div class="ref" id="quoteRef"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Built by <a href="https://www.instagram.com/mohammedidris.ig?igsi=OWtxODQwdWtiamY3" target="_blank" rel="noopener" style="color:#0B6B3A; font-weight:700; text-decoration:none;">Mohammed Idris</a></div>
+  <div class="social-row">
+    <a class="social-btn" href="https://www.instagram.com/mohammedidris.ig?igsi=OWtxODQwdWtiamY3" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>
+      Instagram
+    </a>
+    <a class="social-btn" href="https://www.tiktok.com/@abuidrisxo?_r=1&_t=ZS-99F75k4zTPk" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 3v10.5a3.5 3.5 0 1 1-2.5-3.36V7.5"/><path d="M16 3a5 5 0 0 0 5 5"/></svg>
+      TikTok
+    </a>
+  </div>
+</div>
+
+<script>
+const fallbackVerses = [
+  { arabic: "لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا", text: "Allah does not burden any soul beyond what it can bear.", ref: "Qur'an 2:286", mood: "peace" },
+  { arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", text: "With hardship comes ease.", ref: "Qur'an 94:5", mood: "emotional" },
+  { arabic: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ", text: "Truly, it is in the remembrance of Allah that hearts find rest.", ref: "Qur'an 13:28", mood: "peace" },
+  { arabic: "وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ", text: "Whoever places their trust in Allah, He is enough for them.", ref: "Qur'an 65:3", mood: "peace" },
+  { arabic: "لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ", text: "Never lose hope in the mercy of Allah — He forgives every sin for whoever turns back to Him.", ref: "Qur'an 39:53", mood: "emotional" },
+  { arabic: "وَاسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ", text: "Seek help through patience and prayer.", ref: "Qur'an 2:153", mood: "emotional" },
+  { arabic: "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ", text: "Allah is with those who remain patient.", ref: "Qur'an 2:153", mood: "emotional" },
+  { arabic: "وَبِالْوَالِدَيْنِ إِحْسَانًا", text: "Be good to your parents.", ref: "Qur'an 17:23", mood: "emotional" },
+  { arabic: "إِنَّ أَكْرَمَكُمْ عِندَ اللَّهِ أَتْقَاكُمْ", text: "The most honoured among you in Allah's sight is the one most mindful of Him — not the richest or the loudest.", ref: "Qur'an 49:13", mood: "happy" },
+  { arabic: "فَلَا تَهِنُوا وَلَا تَحْزَنُوا", text: "Do not lose heart and do not grieve.", ref: "Qur'an 3:139", mood: "emotional" },
+  { arabic: "هَلْ جَزَاءُ الْإِحْسَانِ إِلَّا الْإِحْسَانُ", text: "Is the reward for good anything other than good?", ref: "Qur'an 55:60", mood: "happy" },
+  { arabic: "فَاذْكُرُونِي أَذْكُرْكُمْ", text: "So remember Me, and I will remember you.", ref: "Qur'an 2:152", mood: "peace" },
+  { arabic: "وَقُل رَّبِّ زِدْنِي عِلْمًا", text: "Say: my Lord, increase me in knowledge.", ref: "Qur'an 20:114", mood: "happy" },
+  { arabic: "رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي", text: "My Lord, open up my heart, and ease my task for me.", ref: "Qur'an 20:25-26", mood: "emotional" },
+  { arabic: "وَاصْبِرْ وَمَا صَبْرُكَ إِلَّا بِاللَّهِ", text: "Be patient — and your patience is only made possible by Allah.", ref: "Qur'an 16:127", mood: "emotional" },
+  { arabic: "لَا إِلَٰهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ", text: "There is no god but You — glory be to You, truly I was among the wrongdoers.", ref: "Qur'an 21:87, the prayer of Yunus", mood: "emotional" },
+  { arabic: "وَالَّذِينَ جَاهَدُوا فِينَا لَنَهْدِيَنَّهُمْ سُبُلَنَا", text: "Those who strive for Our sake — We will surely guide them to Our ways.", ref: "Qur'an 29:69", mood: "happy" },
+  { arabic: "ادْفَعْ بِالَّتِي هِيَ أَحْسَنُ", text: "Repel evil with what is better.", ref: "Qur'an 41:34", mood: "peace" }
+];
+
+// ---- Full Qur'an (6,236 verses) ----
+// Loaded once from a free public CDN (jsDelivr, mirroring the quran-json
+// project) and cached two ways:
+//   1) sessionStorage — so this tab doesn't re-parse it on every reveal
+//   2) the Service Worker's Cache Storage (see sw.js) — so it works with
+//      NO internet connection on every visit after the first one.
+let quranPool = [];
+let quranReady = false;
+
+async function loadFullQuran() {
+  const cacheKey = 'dr_quran_cache_v2';
+  try {
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      quranPool = JSON.parse(cached);
+      quranReady = true;
+      return;
+    }
+  } catch (e) { /* sessionStorage unavailable, fall through to fetch */ }
+
+  try {
+    const chapterNumbers = Array.from({ length: 114 }, function (_, i) { return i + 1; });
+    const chapters = await Promise.all(chapterNumbers.map(function (n) {
+      return fetch('https://cdn.jsdelivr.net/npm/quran-json@3.1.2/dist/chapters/en/' + n + '.json')
+        .then(function (res) { return res.json(); });
+    }));
+
+    const pool = [];
+    chapters.forEach(function (surah) {
+      surah.verses.forEach(function (ayah) {
+        pool.push({
+          arabic: ayah.text,
+          text: ayah.translation,
+          ref: "Qur'an " + surah.id + ":" + ayah.id + " — " + surah.transliteration
+        });
+      });
+    });
+    quranPool = pool;
+    quranReady = true;
+    try { sessionStorage.setItem(cacheKey, JSON.stringify(pool)); } catch (e) { /* too large / private mode, skip caching */ }
+  } catch (e) {
+    // Offline on a first-ever visit (nothing cached yet) — fall back to the small curated set
+    quranPool = fallbackVerses;
+    quranReady = true;
+  }
+}
+
+// Register the Service Worker so every request this page makes to the
+// Qur'an CDN gets cached — after the first successful online visit, the
+// whole app (including the full Qur'an) works with zero internet.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () { /* offline-first still works without SW */ });
+  });
+}
+
+const hadiths = [
+  { text: "Actions are judged by their intentions, and every person will be rewarded according to what they intended.", ref: "Sahih al-Bukhari", mood: "peace" },
+  { text: "None of you truly believes until he wishes for his brother what he wishes for himself.", ref: "Sahih al-Bukhari and Muslim", mood: "happy" },
+  { text: "The best among you are those who are best to their families.", ref: "Jami' at-Tirmidhi", mood: "happy" },
+  { text: "Smiling at your brother is an act of charity.", ref: "Jami' at-Tirmidhi", mood: "happy" },
+  { text: "Allah is gentle and loves gentleness in all matters.", ref: "Sahih al-Bukhari and Muslim", mood: "peace" },
+  { text: "The strong person is not the one who overpowers others, but the one who controls himself when angry.", ref: "Sahih al-Bukhari", mood: "emotional" },
+  { text: "Be mindful of Allah and He will protect you. Be mindful of Allah and you will find Him with you.", ref: "Jami' at-Tirmidhi", mood: "peace" },
+  { text: "Whoever believes in Allah and the Last Day should speak good or remain silent.", ref: "Sahih al-Bukhari and Muslim", mood: "peace" },
+  { text: "Cleanliness is half of faith.", ref: "Sahih Muslim", mood: "happy" },
+  { text: "The most beloved deeds to Allah are the ones done regularly, even if small.", ref: "Sahih al-Bukhari and Muslim", mood: "peace" },
+  { text: "Seeking knowledge is an obligation upon every believer.", ref: "Sunan Ibn Majah", mood: "happy" },
+  { text: "None of you truly believes until he wishes for his neighbour what he wishes for himself.", ref: "Sahih al-Bukhari", mood: "happy" },
+  { text: "Modesty brings nothing except good.", ref: "Sahih al-Bukhari and Muslim", mood: "peace" },
+  { text: "Take advantage of five before five: your youth before your old age, your health before your sickness, your wealth before your poverty, your free time before you are occupied, and your life before your death.", ref: "Al-Hakim, and narrated by al-Bayhaqi", mood: "emotional" },
+  { text: "A man asked the Prophet who most deserved his good companionship. He said: your mother — three times — then your father.", ref: "Sahih al-Bukhari and Muslim", mood: "emotional" },
+  { text: "Whoever relieves a believer's hardship in this life, Allah will relieve one of his hardships on the Day of Judgment.", ref: "Sahih Muslim", mood: "emotional" },
+  { text: "Feed the hungry, visit the sick, and free the captive.", ref: "Sahih al-Bukhari", mood: "emotional" },
+  { text: "A good word is charity.", ref: "Sahih al-Bukhari and Muslim", mood: "happy" },
+  { text: "Whoever guides someone to goodness has a reward like the one who does it.", ref: "Sahih Muslim", mood: "happy" },
+  { text: "Allah does not look at your bodies or your wealth, but He looks at your hearts and your deeds.", ref: "Sahih Muslim", mood: "peace" }
+];
+
+const quotes = [
+  { text: "Patience is to faith what the head is to the body — without it, there is no faith at all.", ref: "Ali ibn Abi Talib", mood: "emotional" },
+  { text: "The heart that is truly attached to Allah finds a rest that nothing in this world can give it.", ref: "Ibn al-Qayyim", mood: "peace" },
+  { text: "Knowledge without action is like a tree that bears no fruit.", ref: "Imam al-Ghazali", mood: "happy" },
+  { text: "The wound is the place where the light enters you.", ref: "Jalal ad-Din Rumi", mood: "emotional" },
+  { text: "Patience is bitter to taste, but what grows from it is sweeter than honey.", ref: "Imam ash-Shafi'i", mood: "emotional" },
+  { text: "Do good quietly, and let the deed speak for you instead of your tongue.", ref: "Abu Bakr as-Siddiq", mood: "happy" },
+  { text: "This world is three days: yesterday, which has left you and will not return; today, which is yours, so use it well; and tomorrow, which you may never see.", ref: "Hasan al-Basri", mood: "peace" },
+  { text: "Do not delay repentance out of false hope, and do not despair of mercy out of grief.", ref: "Ibn Ata'illah al-Sakandari", mood: "emotional" },
+  { text: "A moment of patience in a moment of anger saves a thousand moments of regret.", ref: "Widely attributed Islamic wisdom", mood: "emotional" },
+  { text: "A grateful heart is a heart at peace, whatever it holds.", ref: "Malik ibn Dinar", mood: "happy" },
+  { text: "A person is known by the company he keeps — so choose your companions with care.", ref: "Abdullah ibn Mas'ud", mood: "happy" },
+  { text: "Leaving a sin for the sake of Allah is dearer to Him than many long nights of extra prayer.", ref: "Al-Fudayl ibn Iyad", mood: "peace" },
+  { text: "Sincerity is the hardest thing to hold onto, because the heart keeps turning.", ref: "Sufyan al-Thawri", mood: "peace" },
+  { text: "Do not lose yourself trying to please everyone; you were created to please your Lord.", ref: "Ibn al-Jawzi", mood: "peace" },
+  { text: "The believer's affair is admirable — every matter of his is good, and this applies to no one but him.", ref: "Adapted from a saying preserved by Imam Muslim", mood: "happy" }
+];
+
+let currentMood = null;
+const bags = {};
+
+function pick(arr, mood, key) {
+  const filtered = mood ? arr.filter(function (item) { return item.mood === mood; }) : arr;
+  const pool = filtered.length ? filtered : arr;
+  const bagKey = key + '_' + (mood || 'all');
+
+  if (!bags[bagKey] || bags[bagKey].length === 0) {
+    const indices = pool.map(function (_, i) { return i; });
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = indices[i]; indices[i] = indices[j]; indices[j] = t;
+    }
+    bags[bagKey] = indices;
+  }
+
+  const idx = bags[bagKey].pop();
+  return pool[idx];
+}
+
+function reveal(mood) {
+  // The full Qur'an isn't tagged by mood, so verses are drawn from the
+  // entire 6,236-ayah pool at random (no repeats until all have shown).
+  // Hadiths and quotes still respect the selected mood.
+  const versePool = quranReady ? quranPool : fallbackVerses;
+  const v = pick(versePool, null, 'verses');
+  const h = pick(hadiths, mood, 'hadiths');
+  const q = pick(quotes, mood, 'quotes');
+
+  document.getElementById('arabicText').textContent = v.arabic;
+  document.getElementById('verseText').textContent = v.text;
+  document.getElementById('verseRef').textContent = v.ref;
+
+  document.getElementById('hadithText').textContent = h.text;
+  document.getElementById('hadithRef').textContent = h.ref;
+
+  document.getElementById('quoteText').textContent = q.text;
+  document.getElementById('quoteRef').textContent = q.ref;
+
+  document.getElementById('results').classList.remove('show');
+  void document.getElementById('results').offsetWidth;
+  document.getElementById('results').classList.add('show');
+
+  const poolNote = quranReady && quranPool.length > 100
+    ? " Drawing from the full Qur'an (" + quranPool.length + " verses)."
+    : "";
+  document.getElementById('hintLine').textContent = (mood
+    ? "Tap a mood again, or use refresh, for a fresh draw."
+    : "Showing a random pick. Choose a mood above to narrow it down.") + poolNote;
+}
+
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours();
+  let period;
+  if (h < 5) period = "the still hours of night";
+  else if (h < 7) period = "the hour of Fajr";
+  else if (h < 12) period = "the morning";
+  else if (h < 15) period = "midday, around Dhuhr";
+  else if (h < 18) period = "the afternoon, around Asr";
+  else if (h < 20) period = "dusk, around Maghrib";
+  else period = "the evening, around Isha";
+
+  const timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const dateStr = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+  document.getElementById('clockLine').textContent = dateStr + " · " + timeStr;
+
+  const greetings = {
+    "the still hours of night": "A quiet hour for remembrance",
+    "the hour of Fajr": "Peace on your morning",
+    "the morning": "A blessed morning to you",
+    "midday, around Dhuhr": "A steady midday to you",
+    "the afternoon, around Asr": "A mindful afternoon to you",
+    "dusk, around Maghrib": "A peaceful evening to you",
+    "the evening, around Isha": "A calm night ahead"
+  };
+  document.getElementById('greetingLine').textContent = greetings[period];
+}
+
+const moodButtons = document.querySelectorAll('.mood-btn');
+moodButtons.forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    moodButtons.forEach(function (b) { b.classList.remove('active'); });
+    this.classList.add('active');
+    currentMood = this.getAttribute('data-mood');
+    reveal(currentMood);
+  });
+});
+
+document.getElementById('refreshBtn').addEventListener('click', function () {
+  this.classList.remove('spin');
+  void this.offsetWidth;
+  this.classList.add('spin');
+  reveal(currentMood);
+});
+
+// ---- Subtle 3D tilt ----
+// The card and hero rotate toward the pointer/touch/phone-tilt, on top of
+// the constant ambient sway on .wrap — giving real layered depth.
+(function () {
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion) return;
+
+  const wrapEl = document.querySelector('.wrap');
+  const cardEl = document.querySelector('.card');
+  const heroEl = document.querySelector('.hero');
+  const MAX_TILT = 12; // degrees
+
+  function setTilt(rotateX, rotateY) {
+    const t = 'rotateX(' + rotateX.toFixed(2) + 'deg) rotateY(' + rotateY.toFixed(2) + 'deg) translateZ(10px)';
+    cardEl.style.transform = t;
+    heroEl.style.transform = t;
+  }
+
+  function resetTilt() {
+    cardEl.style.transform = '';
+    heroEl.style.transform = '';
+  }
+
+  function tiltFromPoint(clientX, clientY) {
+    const rect = wrapEl.getBoundingClientRect();
+    const px = (clientX - rect.left) / rect.width;
+    const py = (clientY - rect.top) / rect.height;
+    setTilt((0.5 - py) * MAX_TILT * 2, (px - 0.5) * MAX_TILT * 2);
+  }
+
+  // Desktop: mouse movement
+  wrapEl.addEventListener('pointermove', function (e) {
+    if (e.pointerType === 'mouse') tiltFromPoint(e.clientX, e.clientY);
+  });
+  wrapEl.addEventListener('pointerleave', resetTilt);
+
+  // Touch: drag across the card
+  wrapEl.addEventListener('touchmove', function (e) {
+    if (e.touches && e.touches[0]) tiltFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+  wrapEl.addEventListener('touchend', resetTilt);
+
+  // Phone gyroscope: tilt the actual device to tilt the card
+  function handleOrientation(e) {
+    if (e.beta === null || e.gamma === null) return;
+    const rotateX = Math.max(-MAX_TILT, Math.min(MAX_TILT, (e.beta - 45) * -0.3));
+    const rotateY = Math.max(-MAX_TILT, Math.min(MAX_TILT, e.gamma * 0.4));
+    setTilt(rotateX, rotateY);
+  }
+
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    // iOS 13+ requires an explicit user gesture to grant motion permission
+    const enableBtn = document.createElement('button');
+    enableBtn.textContent = '✨ Enable tilt effect';
+    enableBtn.className = 'tilt-enable-btn';
+    enableBtn.addEventListener('click', function () {
+      DeviceOrientationEvent.requestPermission().then(function (state) {
+        if (state === 'granted') window.addEventListener('deviceorientation', handleOrientation);
+        enableBtn.remove();
+      }).catch(function () { enableBtn.remove(); });
+    });
+    document.querySelector('.footer').insertAdjacentElement('beforebegin', enableBtn);
+  } else if (typeof window.DeviceOrientationEvent !== 'undefined') {
+    window.addEventListener('deviceorientation', handleOrientation);
+  }
+})();
+
+updateClock();
+setInterval(updateClock, 30000);
+
+document.getElementById('hintLine').textContent = "Loading the full Qur'an…";
+loadFullQuran().then(function () {
+  const note = quranPool === fallbackVerses
+    ? "Couldn't reach the Qur'an database — using the offline set for now."
+    : "Ready — drawing from the full Qur'an (" + quranPool.length + " verses). Pick a mood above.";
+  if (!document.getElementById('results').classList.contains('show')) {
+    document.getElementById('hintLine').textContent = note;
+  }
+});
+
+const overlay = document.getElementById('welcomeOverlay');
+function closePopup() {
+  overlay.classList.remove('show');
+  try { localStorage.setItem('dr_seen_welcome', '1'); } catch (e) {}
+}
+try {
+  if (!localStorage.getItem('dr_seen_welcome')) {
+    setTimeout(function () { overlay.classList.add('show'); }, 900);
+  }
+} catch (e) {}
+document.getElementById('popupClose').addEventListener('click', closePopup);
+document.getElementById('popupMaybe').addEventListener('click', closePopup);
+document.getElementById('popupInstagram').addEventListener('click', closePopup);
+document.getElementById('popupTiktok').addEventListener('click', closePopup);
+overlay.addEventListener('click', function (e) { if (e.target === overlay) closePopup(); });
+</script>
+</body>
+</html>
